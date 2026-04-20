@@ -63,7 +63,34 @@ const CitizenTrackPage = () => {
           });
         }
 
-        setStops(fullStops.length > 0 ? fullStops : fetchedStops);
+        const processedStops = fullStops.length > 0 ? fullStops : fetchedStops;
+        
+        // Fetch road distances between sequential stops using OSRM
+        if (processedStops.length >= 2) {
+          const coords = processedStops.map(s => `${s.longitude},${s.latitude}`).join(';');
+          fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=false`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.code === 'Ok' && data.routes?.[0]) {
+                const legs = data.routes[0].legs;
+                const stopsWithDistance = processedStops.map((stop, i) => ({
+                  ...stop,
+                  // legs[i-1] is the distance from stop i-1 to stop i
+                  roadDistFromPrev: i === 0 ? 0 : (legs[i - 1]?.distance / 1000) || 0
+                }));
+                setStops(stopsWithDistance);
+              } else {
+                setStops(processedStops);
+              }
+            })
+            .catch(err => {
+              console.error('OSRM Distance Error:', err);
+              setStops(processedStops);
+            });
+        } else {
+          setStops(processedStops);
+        }
+
         setBuses(tripsRes.data.filter(t => t.route_id === parseInt(routeId)));
       })
       .catch(console.error)
@@ -108,18 +135,20 @@ const CitizenTrackPage = () => {
     const targetIdx = stops.findIndex(s => s.id === targetStop.id);
     let distanceKm = 0;
     
-    // Sum sequential physical distances along the route path (like Google Maps)
     if (targetIdx >= closestStopIndex) {
+      // 1. Bus to closest stop (Haversine for real-time segment)
       distanceKm = getDistanceInKm(bus.current_lat, bus.current_lng, stops[closestStopIndex].latitude, stops[closestStopIndex].longitude);
+      
+      // 2. Add road distances for all sequential stops in between
       for (let i = closestStopIndex + 1; i <= targetIdx; i++) {
-        distanceKm += getDistanceInKm(stops[i-1].latitude, stops[i-1].longitude, stops[i].latitude, stops[i].longitude);
+        distanceKm += stops[i].roadDistFromPrev || getDistanceInKm(stops[i-1].latitude, stops[i-1].longitude, stops[i].latitude, stops[i].longitude);
       }
     } else {
       distanceKm = getDistanceInKm(bus.current_lat, bus.current_lng, targetStop.latitude, targetStop.longitude);
     }
 
     const busSpeed = parseFloat(bus.speed) || 0;
-    const effectiveSpeed = busSpeed > 5 ? busSpeed : 25; // Fallback avg urban speed if stopped/slow
+    const effectiveSpeed = busSpeed > 5 ? busSpeed : 25; 
     const timeHours = distanceKm / effectiveSpeed;
     const timeMin = Math.max(1, Math.round(timeHours * 60));
     return `~${timeMin} min`;
@@ -268,8 +297,7 @@ const CitizenTrackPage = () => {
                        if (isCurrent) {
                           runningDistance = getDistanceInKm(activeBus.current_lat, activeBus.current_lng, stop.latitude, stop.longitude);
                        } else if (isUpcoming && index > 0) {
-                          const prevStop = stops[index - 1];
-                          runningDistance += getDistanceInKm(prevStop.latitude, prevStop.longitude, stop.latitude, stop.longitude);
+                          runningDistance += stop.roadDistFromPrev || getDistanceInKm(stops[index-1].latitude, stops[index-1].longitude, stop.latitude, stop.longitude);
                        }
                     }
                     

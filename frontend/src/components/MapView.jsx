@@ -69,27 +69,73 @@ const FlyToMarker = ({ position }) => {
 };
 
 const MapView = ({ stops = [], buses = [], sourceId, destId, selectedStopId, onStopSelect, height = '400px' }) => {
+  const [routePoints, setRoutePoints] = useState([]);
+  const [activeRoutePoints, setActiveRoutePoints] = useState([]);
+
   const activeBus = buses.find(b => b.current_lat);
+
+  // Fetch full route geometry from OSRM
+  useEffect(() => {
+    if (stops.length < 2) {
+      setRoutePoints(stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]));
+      return;
+    }
+
+    const coords = stops.map(s => `${s.longitude},${s.latitude}`).join(';');
+    fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.code === 'Ok' && data.routes?.[0]) {
+          const points = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+          setRoutePoints(points);
+        }
+      })
+      .catch(err => {
+        console.error('OSRM Route Error:', err);
+        // Fallback to straight lines
+        setRoutePoints(stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]));
+      });
+  }, [stops]);
+
+  // Fetch active segment (source to dest) from OSRM
+  useEffect(() => {
+    if (!sourceId || !destId || stops.length < 2) {
+      setActiveRoutePoints([]);
+      return;
+    }
+
+    const src = stops.find(s => s.id === parseInt(sourceId));
+    const dest = stops.find(s => s.id === parseInt(destId));
+
+    if (!src || !dest) return;
+
+    // We only want the road path between these specific stops on the defined route
+    const segmentStops = [];
+    const srcIdx = stops.findIndex(s => s.id === parseInt(sourceId));
+    const destIdx = stops.findIndex(s => s.id === parseInt(destId));
+    
+    if (srcIdx === -1 || destIdx === -1) return;
+    
+    const start = Math.min(srcIdx, destIdx);
+    const end = Math.max(srcIdx, destIdx);
+    const coords = stops.slice(start, end + 1).map(s => `${s.longitude},${s.latitude}`).join(';');
+
+    fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.code === 'Ok' && data.routes?.[0]) {
+          const points = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+          setActiveRoutePoints(points);
+        }
+      })
+      .catch(console.error);
+  }, [sourceId, destId, stops]);
 
   const defaultCenter = stops.length > 0
     ? [parseFloat(stops[0].latitude), parseFloat(stops[0].longitude)]
     : activeBus
       ? [parseFloat(activeBus.current_lat), parseFloat(activeBus.current_lng)]
       : [18.5204, 73.8567]; // Pune default
-
-  const fullPolylinePoints = stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]);
-
-  // Active path from source to dest
-  let activePolylinePoints = [];
-  if (sourceId && destId && stops.length > 0) {
-    const srcIndex = stops.findIndex(s => s.id === parseInt(sourceId));
-    const destIndex = stops.findIndex(s => s.id === parseInt(destId));
-    if (srcIndex !== -1 && destIndex !== -1) {
-      const startIndex = Math.min(srcIndex, destIndex);
-      const endIndex = Math.max(srcIndex, destIndex);
-      activePolylinePoints = stops.slice(startIndex, endIndex + 1).map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]);
-    }
-  }
 
   return (
     <div style={{ height, width: '100%', borderRadius: '16px', overflow: 'hidden' }}>
@@ -104,18 +150,18 @@ const MapView = ({ stops = [], buses = [], sourceId, destId, selectedStopId, onS
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Full Route polyline (brightly highlighted) */}
-        {fullPolylinePoints.length > 1 && (
+        {/* Full Route polyline (Road following) */}
+        {routePoints.length > 1 && (
           <Polyline
-            positions={fullPolylinePoints}
+            positions={routePoints}
             pathOptions={{ color: '#3b82f6', weight: 6, opacity: 0.6 }}
           />
         )}
 
         {/* Active Segment polyline (bold/thick) */}
-        {activePolylinePoints.length > 1 && (
+        {activeRoutePoints.length > 1 && (
           <Polyline
-            positions={activePolylinePoints}
+            positions={activeRoutePoints}
             pathOptions={{ color: '#0051ffff', weight: 9, opacity: 1 }}
           />
         )}
