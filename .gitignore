@@ -18,6 +18,7 @@ out/
 app/build/
 BusSetu/build/
 BusSetu/app/build/
+.vite/
 
 # IDE/Settings
 .idea/
