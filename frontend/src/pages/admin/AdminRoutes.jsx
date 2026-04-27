@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar';
-import { getRoutes, createRoute, deleteRoute, uploadRouteExcel } from '../../services/api';
-import { Plus, Trash2, Route, Upload, X, Menu, FileSpreadsheet, MapPin, AlertCircle, CheckCircle, ChevronRight } from 'lucide-react';
+import { getRoutes, deleteRoute, uploadRouteExcel } from '../../services/api';
+import { Plus, Trash2, Route, Upload, X, Menu, FileSpreadsheet, MapPin, AlertCircle, CheckCircle, ChevronRight, Map, Sparkles } from 'lucide-react';
 
 const Toast = ({ toast }) => toast ? (
   <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium ${
@@ -13,31 +14,19 @@ const Toast = ({ toast }) => toast ? (
 ) : null;
 
 const AdminRoutes = () => {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [routes, setRoutes] = useState([]);
-  const [form, setForm] = useState({
-    route_name: '', description: '',
-    start_point_name: '', start_latitude: '', start_longitude: '',
-    end_point_name: '', end_latitude: '', end_longitude: ''
-  });
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [tab, setTab] = useState('manual');
 
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
   useEffect(() => { fetchRoutes(); }, []);
   const fetchRoutes = () => getRoutes().then(res => setRoutes(res.data)).catch(console.error);
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!form.route_name.trim()) return;
-    setLoading(true);
-    try { await createRoute(form); setForm({ route_name: '', description: '', start_point_name: '', start_latitude: '', start_longitude: '', end_point_name: '', end_latitude: '', end_longitude: '' }); fetchRoutes(); showToast('Route created!'); }
-    catch (err) { showToast(err.response?.data?.message || 'Failed to create route', 'error'); }
-    finally { setLoading(false); }
-  };
+
 
   const handleExcelUpload = async (e) => {
     e.preventDefault();
@@ -81,102 +70,56 @@ const AdminRoutes = () => {
             <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
               {/* LEFT — Create form */}
               <div className="xl:col-span-2 space-y-5">
+                {/* Route Builder CTA */}
+                <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-600/20 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-6 -translate-x-6"></div>
+                  <div className="relative z-10">
+                    <div className="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center mb-4 border border-white/20">
+                      <Map className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="font-bold text-xl mb-1.5">Visual Route Builder</h2>
+                    <p className="text-blue-200 text-sm mb-5 leading-relaxed">
+                      Click on the map to place stations. Drag to reposition. Auto-names via reverse geocoding.
+                    </p>
+                    <button
+                      onClick={() => navigate('/admin/route-builder')}
+                      className="w-full bg-white text-blue-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all hover:bg-blue-50 shadow-lg text-sm"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Open Route Builder
+                    </button>
+                  </div>
+                </div>
+
+                {/* Excel Upload Card */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="font-bold text-slate-800 text-lg mb-5 flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-blue-600" />Add New Route
+                    <FileSpreadsheet className="w-5 h-5 text-blue-600" />Upload via Excel
                   </h2>
 
-                  {/* Tab switcher */}
-                  <div className="flex gap-1 mb-5 p-1 bg-slate-100 rounded-xl">
-                    {['manual', 'excel'].map((t) => (
-                      <button key={t} onClick={() => setTab(t)}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                        {t === 'manual' ? '✏️ Manual' : '📊 Excel Upload'}
+                  <form onSubmit={handleExcelUpload} className="space-y-4">
+                    <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 text-sm text-blue-700">
+                      <p className="font-semibold mb-1">📋 Required Excel Columns:</p>
+                      <code className="text-xs bg-blue-100 px-2 py-0.5 rounded font-mono">route_name | stop_name | latitude | longitude | stop_order</code>
+                    </div>
+                    <label className="block border-2 border-dashed border-slate-200 hover:border-blue-300 rounded-xl p-8 text-center cursor-pointer transition-colors bg-slate-50 hover:bg-blue-50">
+                      <FileSpreadsheet className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                      <p className="text-sm font-semibold text-slate-600">{file ? file.name : 'Click to upload Excel file'}</p>
+                      <p className="text-xs text-slate-400 mt-1">.xlsx or .xls format</p>
+                      <input id="excel-upload" type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+                    </label>
+                    {file && (
+                      <button type="button" onClick={() => setFile(null)} className="flex items-center gap-1.5 text-red-500 hover:text-red-600 text-sm font-medium">
+                        <X className="w-3.5 h-3.5" />Remove file
                       </button>
-                    ))}
-                  </div>
-
-                  {tab === 'manual' ? (
-                    <form onSubmit={handleCreate} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Route Name</label>
-                        <input id="route-name-input" type="text" placeholder="e.g. KMT Route 42 – City Centre to Airport"
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm placeholder-slate-400"
-                          value={form.route_name} onChange={(e) => setForm({ ...form, route_name: e.target.value })} required />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Description (optional)</label>
-                        <textarea placeholder="Brief description of the route..."
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm resize-none h-24 placeholder-slate-400"
-                          value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4 mt-2">
-                        {/* Start Point */}
-                        <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-1.5"><MapPin className="w-4 h-4 text-emerald-500" /> Start Point</h3>
-                          <div>
-                            <input type="text" placeholder="Stop Name (e.g. Swargate)"
-                              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm"
-                              value={form.start_point_name} onChange={(e) => setForm({ ...form, start_point_name: e.target.value })} required />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <input type="number" step="any" placeholder="Latitude"
-                              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm"
-                              value={form.start_latitude} onChange={(e) => setForm({ ...form, start_latitude: e.target.value })} required />
-                            <input type="number" step="any" placeholder="Longitude"
-                              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm"
-                              value={form.start_longitude} onChange={(e) => setForm({ ...form, start_longitude: e.target.value })} required />
-                          </div>
-                        </div>
-
-                        {/* End Point */}
-                        <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-1.5"><MapPin className="w-4 h-4 text-red-500" /> End Point</h3>
-                          <div>
-                            <input type="text" placeholder="Stop Name (e.g. Katraj)"
-                              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm"
-                              value={form.end_point_name} onChange={(e) => setForm({ ...form, end_point_name: e.target.value })} required />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <input type="number" step="any" placeholder="Latitude"
-                              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm"
-                              value={form.end_latitude} onChange={(e) => setForm({ ...form, end_latitude: e.target.value })} required />
-                            <input type="number" step="any" placeholder="Longitude"
-                              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-sm"
-                              value={form.end_longitude} onChange={(e) => setForm({ ...form, end_longitude: e.target.value })} required />
-                          </div>
-                        </div>
-                      </div>
-                      <button id="create-route-btn" type="submit" disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/15 disabled:opacity-60">
-                        {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Create Route
-                      </button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleExcelUpload} className="space-y-4">
-                      <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 text-sm text-blue-700">
-                        <p className="font-semibold mb-1">📋 Required Excel Columns:</p>
-                        <code className="text-xs bg-blue-100 px-2 py-0.5 rounded font-mono">route_name | stop_name | latitude | longitude | stop_order</code>
-                      </div>
-                      <label className="block border-2 border-dashed border-slate-200 hover:border-blue-300 rounded-xl p-8 text-center cursor-pointer transition-colors bg-slate-50 hover:bg-blue-50">
-                        <FileSpreadsheet className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                        <p className="text-sm font-semibold text-slate-600">{file ? file.name : 'Click to upload Excel file'}</p>
-                        <p className="text-xs text-slate-400 mt-1">.xlsx or .xls format</p>
-                        <input id="excel-upload" type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
-                      </label>
-                      {file && (
-                        <button type="button" onClick={() => setFile(null)} className="flex items-center gap-1.5 text-red-500 hover:text-red-600 text-sm font-medium">
-                          <X className="w-3.5 h-3.5" />Remove file
-                        </button>
-                      )}
-                      <button id="upload-excel-btn" type="submit" disabled={loading || !file}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/15 disabled:opacity-50">
-                        {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
-                        Upload & Create Route
-                      </button>
-                    </form>
-                  )}
+                    )}
+                    <button id="upload-excel-btn" type="submit" disabled={loading || !file}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/15 disabled:opacity-50">
+                      {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Upload className="w-4 h-4" />}
+                      Upload & Create Route
+                    </button>
+                  </form>
                 </div>
               </div>
 

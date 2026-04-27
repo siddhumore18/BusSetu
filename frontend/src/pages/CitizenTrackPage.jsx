@@ -39,31 +39,31 @@ const CitizenTrackPage = () => {
         const routeData = routeRes.data;
         const fetchedStops = routeData.stops || [];
         
-        const fullStops = [];
-        // Inject start point dynamically if exists
-        if (routeData.start_point_name && routeData.start_latitude) {
-          fullStops.push({
-            id: 'start',
-            stop_name: routeData.start_point_name,
-            latitude: routeData.start_latitude,
-            longitude: routeData.start_longitude
-          });
+        // If stops exist in DB, use them directly — first stop = start, last stop = end.
+        // Only inject route-level start/end as fallback when no stops exist (legacy routes).
+        let processedStops;
+        if (fetchedStops.length > 0) {
+          processedStops = fetchedStops;
+        } else {
+          const fallback = [];
+          if (routeData.start_point_name && routeData.start_latitude) {
+            fallback.push({
+              id: 'start',
+              stop_name: routeData.start_point_name,
+              latitude: routeData.start_latitude,
+              longitude: routeData.start_longitude
+            });
+          }
+          if (routeData.end_point_name && routeData.end_latitude) {
+            fallback.push({
+              id: 'end',
+              stop_name: routeData.end_point_name,
+              latitude: routeData.end_latitude,
+              longitude: routeData.end_longitude
+            });
+          }
+          processedStops = fallback;
         }
-        
-        // Inject intermediate stops
-        fullStops.push(...fetchedStops);
-        
-        // Inject end point dynamically if exists
-        if (routeData.end_point_name && routeData.end_latitude) {
-          fullStops.push({
-            id: 'end',
-            stop_name: routeData.end_point_name,
-            latitude: routeData.end_latitude,
-            longitude: routeData.end_longitude
-          });
-        }
-
-        const processedStops = fullStops.length > 0 ? fullStops : fetchedStops;
         
         // Fetch road distances between sequential stops using OSRM
         if (processedStops.length >= 2) {

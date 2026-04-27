@@ -25,6 +25,7 @@ export const createRoute = (data) => api.post('/routes/create', data);
 export const deleteRoute = (id) => api.delete(`/routes/${id}`);
 export const uploadRouteExcel = (formData) =>
   api.post('/routes/upload-excel', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const createRouteWithStops = (data) => api.post('/routes/create-with-stops', data);
 
 // Stops
 export const getAllStops = () => api.get('/stops');

@@ -303,3 +303,48 @@ body {
 .moving-bus-marker {
   transition: transform 1.5s linear !important;
 }
+
+/* ── Route Builder styles ────────────────────────── */
+
+/* Crosshair cursor when in "add station" mode */
+.route-builder-crosshair {
+  cursor: crosshair !important;
+}
+.route-builder-crosshair .leaflet-grab {
+  cursor: crosshair !important;
+}
+.route-builder-crosshair .leaflet-dragging .leaflet-grab {
+  cursor: crosshair !important;
+}
+
+/* Marker ring pulse animation */
+@keyframes marker-ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Station list custom scrollbar */
+.route-builder-station-list::-webkit-scrollbar {
+  width: 4px;
+}
+.route-builder-station-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.route-builder-station-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+/* Subtle fade-in for toasts and new elements */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
+}
+
+/* Fix leaflet marker z-index in builder */
+.route-builder-marker {
+  z-index: 500 !important;
+}

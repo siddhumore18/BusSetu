@@ -19,7 +19,7 @@ const CitizenHomePage = () => {
     Promise.all([getAllStops(), getRoutes()])
       .then(([s, r]) => { setStops(s.data); setRoutes(r.data); })
       .catch(console.error);
-  }, []);
+  }, []); 
 
   const swapStops = () => { const t = source; setSource(destination); setDestination(t); };
 

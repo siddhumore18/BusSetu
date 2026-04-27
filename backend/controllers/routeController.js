@@ -110,6 +110,58 @@ export const getRouteById = async (req, res) => {
     }
 };
 
+// Create route with stops (atomic transaction)
+export const createRouteWithStops = async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { route_name, description, stations } = req.body;
+        if (!route_name) return res.status(400).json({ message: "Route name is required" });
+        if (!stations || !Array.isArray(stations) || stations.length < 2) {
+            return res.status(400).json({ message: "At least 2 stations are required" });
+        }
+
+        await client.query("BEGIN");
+
+        // Sort stations by order
+        const sorted = [...stations].sort((a, b) => a.order - b.order);
+        const first = sorted[0];
+        const last = sorted[sorted.length - 1];
+
+        // Insert route
+        const routeResult = await client.query(
+            `INSERT INTO routes (
+                route_name, description, created_by,
+                start_point_name, start_latitude, start_longitude,
+                end_point_name, end_latitude, end_longitude
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [
+                route_name.trim(), description || null, req.user.id,
+                first.name || null, first.lat, first.lng,
+                last.name || null, last.lat, last.lng
+            ]
+        );
+        const route = routeResult.rows[0];
+
+        // Insert all stops
+        const stopsInserted = [];
+        for (const station of sorted) {
+            const stop = await client.query(
+                "INSERT INTO stops (stop_name, latitude, longitude, route_id, stop_order) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+                [station.name.trim(), station.lat, station.lng, route.id, station.order]
+            );
+            stopsInserted.push(stop.rows[0]);
+        }
+
+        await client.query("COMMIT");
+        res.status(201).json({ route, stops: stopsInserted });
+    } catch (err) {
+        await client.query("ROLLBACK");
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+};
+
 // Delete route
 export const deleteRoute = async (req, res) => {
     try {

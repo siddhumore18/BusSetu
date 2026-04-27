@@ -11,6 +11,7 @@ import DriverDashboard from './pages/DriverDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminRoutes from './pages/admin/AdminRoutes';
 import AdminStops from './pages/admin/AdminStops';
+import AdminRouteBuilder from './pages/admin/AdminRouteBuilder';
 import AdminBuses from './pages/admin/AdminBuses';
 import AdminDrivers from './pages/admin/AdminDrivers';
 
@@ -41,6 +42,11 @@ function App() {
           <Route path="/admin/routes" element={
             <ProtectedRoute role="admin">
               <AdminRoutes />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/route-builder" element={
+            <ProtectedRoute role="admin">
+              <AdminRouteBuilder />
             </ProtectedRoute>
           } />
           <Route path="/admin/stops" element={
