@@ -20,6 +20,12 @@ export default defineConfig({
         target: 'http://localhost:5000',
         ws: true,
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', () => {});
+          proxy.on('proxyReqWs', (_proxyReq, _req, socket) => {
+            socket.on('error', () => {});
+          });
+        },
       }
     }
   }

@@ -348,3 +348,221 @@ body {
 .route-builder-marker {
   z-index: 500 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   3D BUS SCENE — Landing Page Hero
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Scene container */
+.bus-3d-scene {
+  perspective: 900px;
+  width: 320px;
+  height: 320px;
+  position: relative;
+  margin: 0 auto;
+}
+
+/* Rotating wrapper for the bus */
+.bus-3d-wrapper {
+  width: 160px;
+  height: 100px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+  transform: translate(-50%, -50%) rotateX(-15deg);
+  animation: rotate-bus 12s linear infinite;
+}
+
+@keyframes rotate-bus {
+  0%   { transform: translate(-50%, -50%) rotateX(-15deg) rotateY(0deg); }
+  100% { transform: translate(-50%, -50%) rotateX(-15deg) rotateY(360deg); }
+}
+
+/* Cuboid faces */
+.bus-3d-face {
+  position: absolute;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+  backface-visibility: visible;
+}
+
+.bus-3d-front  { width: 160px; height: 100px; transform: translateZ(35px); background: linear-gradient(135deg, rgba(37,99,235,0.85), rgba(13,148,136,0.85)); }
+.bus-3d-back   { width: 160px; height: 100px; transform: translateZ(-35px) rotateY(180deg); background: linear-gradient(135deg, rgba(29,78,216,0.8), rgba(15,118,110,0.8)); }
+.bus-3d-left   { width: 70px;  height: 100px; left: -35px; transform-origin: right; transform: rotateY(-90deg); background: rgba(37,99,235,0.7); }
+.bus-3d-right  { width: 70px;  height: 100px; right: -35px; transform-origin: left; transform: rotateY(90deg); background: rgba(13,148,136,0.7); }
+.bus-3d-top    { width: 160px; height: 70px;  top: -35px; transform-origin: bottom; transform: rotateX(90deg); background: linear-gradient(135deg, rgba(59,130,246,0.6), rgba(20,184,166,0.6)); }
+.bus-3d-bottom { width: 160px; height: 70px;  bottom: -35px; transform-origin: top; transform: rotateX(-90deg); background: rgba(30,58,95,0.5); }
+
+/* Windows on the front face */
+.bus-3d-window {
+  position: absolute;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+/* Orbiting pins */
+.bus-3d-orbit {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  animation: orbit-pin 8s linear infinite;
+}
+.bus-3d-orbit:nth-child(2) { animation-delay: -2.66s; }
+.bus-3d-orbit:nth-child(3) { animation-delay: -5.33s; }
+
+@keyframes orbit-pin {
+  0%   { transform: rotate(0deg)   translateX(140px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+}
+
+.bus-3d-pin {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(103,232,249,0.4);
+  backdrop-filter: blur(6px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -14px;
+  margin-left: -14px;
+}
+
+.bus-3d-pin-dot {
+  width: 8px;
+  height: 8px;
+  background: #67e8f9;
+  border-radius: 50%;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px #67e8f9;
+}
+
+/* Road ring */
+.bus-3d-road {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) rotateX(75deg);
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 3px dashed rgba(255,255,255,0.2);
+  animation: road-spin 20s linear infinite;
+}
+
+@keyframes road-spin {
+  from { transform: translateX(-50%) rotateX(75deg) rotateZ(0deg); }
+  to   { transform: translateX(-50%) rotateX(75deg) rotateZ(360deg); }
+}
+
+/* Floating particles */
+.bus-3d-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(103,232,249,0.6);
+  border-radius: 50%;
+  animation: float-particle 4s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba(103,232,249,0.4);
+}
+
+@keyframes float-particle {
+  0%   { opacity: 0; transform: translateY(0) scale(0); }
+  20%  { opacity: 1; transform: translateY(-20px) scale(1); }
+  80%  { opacity: 0.6; transform: translateY(-100px) scale(0.8); }
+  100% { opacity: 0; transform: translateY(-140px) scale(0); }
+}
+
+/* Glow effect behind the bus */
+.bus-3d-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(103,232,249,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   CHATBOT — Animations & Styles
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Slide-up entrance for chat window */
+.chatbot-slide-up {
+  animation: chatbot-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes chatbot-slide-up {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Message entrance animation */
+.chatbot-message-in {
+  animation: chatbot-msg-in 0.3s ease-out;
+}
+
+@keyframes chatbot-msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Typing dots */
+.chatbot-typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: chatbot-typing 1.2s ease-in-out infinite;
+}
+
+@keyframes chatbot-typing {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+  30%           { opacity: 1; transform: scale(1); }
+}
+
+/* FAB pulse ring */
+.chatbot-fab-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(37,99,235,0.4);
+  animation: chatbot-fab-ring 2s ease-out infinite;
+}
+
+@keyframes chatbot-fab-ring {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Scrollbar for chat messages */
+.chatbot-messages-scroll::-webkit-scrollbar { width: 4px; }
+.chatbot-messages-scroll::-webkit-scrollbar-track { background: transparent; }
+.chatbot-messages-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+/* Spinner for loading */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

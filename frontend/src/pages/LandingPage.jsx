@@ -1,6 +1,95 @@
 import { useNavigate } from 'react-router-dom';
 import { Bus, MapPin, Shield, Navigation, Clock, BarChart3, ChevronRight, Zap } from 'lucide-react';
 
+/* ── 3D Bus Scene ─────────────────────────────────────────────── */
+const Bus3DScene = () => {
+  // Floating particles with random positions & delays
+  const particles = Array.from({ length: 8 }, (_, i) => ({
+    left: `${15 + Math.random() * 70}%`,
+    top: `${40 + Math.random() * 40}%`,
+    delay: `${i * 0.5}s`,
+    size: 3 + Math.random() * 3,
+  }));
+
+  return (
+    <div className="bus-3d-scene" style={{ marginTop: '20px' }}>
+      {/* Glow behind bus */}
+      <div className="bus-3d-glow" />
+
+      {/* Road ring (ellipse beneath the bus) */}
+      <div className="bus-3d-road" />
+
+      {/* Orbiting map pins */}
+      {[0, 1, 2].map(i => (
+        <div key={i} className="bus-3d-orbit">
+          <div className="bus-3d-pin">
+            <div className="bus-3d-pin-dot" />
+          </div>
+        </div>
+      ))}
+
+      {/* 3D Rotating Bus (cuboid) */}
+      <div className="bus-3d-wrapper">
+        {/* Front face with windows */}
+        <div className="bus-3d-face bus-3d-front">
+          {/* Windshield */}
+          <div className="bus-3d-window" style={{ top: '12px', left: '10px', right: '10px', height: '32px', borderRadius: '6px 6px 4px 4px' }} />
+          {/* Headlights */}
+          <div style={{ position: 'absolute', bottom: '12px', left: '14px', width: '20px', height: '10px', background: 'rgba(252,211,77,0.6)', borderRadius: '3px', boxShadow: '0 0 10px rgba(252,211,77,0.4)' }} />
+          <div style={{ position: 'absolute', bottom: '12px', right: '14px', width: '20px', height: '10px', background: 'rgba(252,211,77,0.6)', borderRadius: '3px', boxShadow: '0 0 10px rgba(252,211,77,0.4)' }} />
+          {/* Route number badge */}
+          <div style={{ position: 'absolute', bottom: '30px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.25)', borderRadius: '4px', padding: '2px 10px', fontSize: '11px', fontWeight: 700, color: 'white', letterSpacing: '0.05em' }}>
+            KMT
+          </div>
+        </div>
+        {/* Back face */}
+        <div className="bus-3d-face bus-3d-back">
+          <div className="bus-3d-window" style={{ top: '12px', left: '20px', right: '20px', height: '28px' }} />
+          <div style={{ position: 'absolute', bottom: '12px', left: '14px', width: '14px', height: '14px', background: 'rgba(239,68,68,0.6)', borderRadius: '3px', boxShadow: '0 0 8px rgba(239,68,68,0.4)' }} />
+          <div style={{ position: 'absolute', bottom: '12px', right: '14px', width: '14px', height: '14px', background: 'rgba(239,68,68,0.6)', borderRadius: '3px', boxShadow: '0 0 8px rgba(239,68,68,0.4)' }} />
+        </div>
+        {/* Side faces with windows */}
+        <div className="bus-3d-face bus-3d-left">
+          <div className="bus-3d-window" style={{ top: '14px', left: '8px', width: '22px', height: '24px' }} />
+          <div className="bus-3d-window" style={{ top: '14px', right: '8px', width: '22px', height: '24px' }} />
+          {/* Wheels */}
+          <div style={{ position: 'absolute', bottom: '6px', left: '8px', width: '18px', height: '18px', background: 'rgba(0,0,0,0.4)', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }} />
+          <div style={{ position: 'absolute', bottom: '6px', right: '8px', width: '18px', height: '18px', background: 'rgba(0,0,0,0.4)', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }} />
+        </div>
+        <div className="bus-3d-face bus-3d-right">
+          <div className="bus-3d-window" style={{ top: '14px', left: '8px', width: '22px', height: '24px' }} />
+          <div className="bus-3d-window" style={{ top: '14px', right: '8px', width: '22px', height: '24px' }} />
+          <div style={{ position: 'absolute', bottom: '6px', left: '8px', width: '18px', height: '18px', background: 'rgba(0,0,0,0.4)', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }} />
+          <div style={{ position: 'absolute', bottom: '6px', right: '8px', width: '18px', height: '18px', background: 'rgba(0,0,0,0.4)', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }} />
+        </div>
+        {/* Top face */}
+        <div className="bus-3d-face bus-3d-top">
+          {/* AC unit */}
+          <div style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '16px', background: 'rgba(255,255,255,0.15)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)' }} />
+        </div>
+        {/* Bottom face */}
+        <div className="bus-3d-face bus-3d-bottom" />
+      </div>
+
+      {/* Floating particles */}
+      {particles.map((p, i) => (
+        <div
+          key={i}
+          className="bus-3d-particle"
+          style={{
+            left: p.left,
+            top: p.top,
+            animationDelay: p.delay,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ── Landing Page ─────────────────────────────────────────────── */
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -60,14 +149,10 @@ const LandingPage = () => {
         position: 'relative',
         overflow: 'hidden',
       }} className="hidden lg:flex w-full lg:w-1/2 flex-col justify-between">
-        {/* Decorative circles */}
-        <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '320px', height: '320px', background: 'rgba(0,0,0,0.08)', borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: '40%', right: '15%', width: '200px', height: '200px', background: 'rgba(6,182,212,0.08)', borderRadius: '50%', pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative' }}>
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '64px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
             <div style={{ width: '48px', height: '48px', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}>
               <Bus style={{ width: '26px', height: '26px', color: 'white' }} />
             </div>
@@ -81,18 +166,18 @@ const LandingPage = () => {
           </div>
 
           {/* Headline */}
-          <h1 style={{ color: 'white', fontSize: '52px', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '20px' }}>
+          <h1 style={{ color: 'white', fontSize: '48px', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: '16px' }}>
             KMT Live Bus<br />
             <span style={{ background: 'linear-gradient(90deg, #67e8f9 0%, #34d399 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Tracking System
             </span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '18px', lineHeight: 1.65, maxWidth: '380px', marginBottom: '36px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '16px', lineHeight: 1.65, maxWidth: '380px', marginBottom: '24px' }}>
             Real-time bus tracking for smarter commuting. Know exactly when your bus arrives before you leave home.
           </p>
 
           {/* Feature pills */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '48px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '24px' }}>
             {[
               { icon: Navigation, text: 'Live GPS' },
               { icon: Clock, text: 'ETA Prediction' },
@@ -104,6 +189,11 @@ const LandingPage = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* ── 3D Bus Scene ── */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '320px' }}>
+          <Bus3DScene />
         </div>
 
         {/* Stats bar */}

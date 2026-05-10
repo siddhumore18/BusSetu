@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ChatBot from './components/ChatBot';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -65,6 +66,7 @@ function App() {
             </ProtectedRoute>
           } />
         </Routes>
+        <ChatBot />
       </AuthProvider>
     </BrowserRouter>
   );
